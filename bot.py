@@ -19,12 +19,18 @@ from image_search import find_image
 
 load_dotenv()
 
+
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 
 logging.basicConfig(
     level=logging.INFO
 )
+
+
+# منع تكرار نفس الرسالة
+processed_ids = set()
+
 
 
 async def process_message(
@@ -34,8 +40,21 @@ async def process_message(
 
     message = update.message
 
+
     if not message:
         return
+
+
+
+    # منع التكرار
+    if message.message_id in processed_ids:
+        return
+
+
+    processed_ids.add(
+        message.message_id
+    )
+
 
 
     await message.reply_text(
@@ -43,7 +62,13 @@ async def process_message(
     )
 
 
-    text = message.caption or message.text or ""
+
+    text = (
+        message.caption
+        or message.text
+        or ""
+    )
+
 
 
     image = None
@@ -53,25 +78,35 @@ async def process_message(
     content = text
 
 
-    # فيديو تيليجرام
+
+    # فيديو Telegram
+
     if message.video:
+
         video = message.video.file_id
 
 
-    # صورة تيليجرام
+
+    # صورة Telegram
+
     elif message.photo:
+
         image = message.photo[-1].file_id
 
 
 
     # رابط خارجي
+
     if text.startswith("http"):
 
         await message.reply_text(
             "🌐 جاري قراءة الرابط..."
         )
 
-        article = await extract_article(text)
+
+        article = await extract_article(
+            text
+        )
 
 
         title = article.get(
@@ -79,22 +114,31 @@ async def process_message(
             ""
         )
 
+
         content = article.get(
             "content",
             ""
         )
 
 
+
         if article.get("video"):
-            video = article.get("video")
+
+            video = article.get(
+                "video"
+            )
 
 
         elif article.get("image"):
-            image = article.get("image")
+
+            image = article.get(
+                "image"
+            )
 
 
 
-    # البحث عن صورة
+    # البحث عن صورة إذا لا يوجد ملف
+
     if not image and not video:
 
         image = await find_image(
@@ -102,19 +146,14 @@ async def process_message(
         )
 
 
-    print("========== DEBUG ==========")
-    print("TITLE:", title)
-    print("IMAGE:", image)
-    print("VIDEO:", video)
-    print("===========================")
 
+    # كتابة الخبر
 
-
-    # كتابة الخبر بالذكاء الاصطناعي
     ai_text = rewrite_news(
         content,
         title
     )
+
 
 
     final_post = create_template(
@@ -122,17 +161,22 @@ async def process_message(
     )
 
 
-    print("🚀 Sending to publisher...")
 
+    print("===================")
+    print("TITLE:", title)
+    print("IMAGE:", image)
+    print("VIDEO:", video)
+    print("===================")
+
+
+
+    # النشر
 
     result = await publish_post(
         text=final_post,
         image=image,
         video=video
     )
-
-
-    print("PUBLISH RESULT:", result)
 
 
 
@@ -154,9 +198,11 @@ async def process_message(
 
 def main():
 
+
     print(
         "🚀 DeepSource Bot Running..."
     )
+
 
 
     app = Application.builder()\
@@ -166,11 +212,19 @@ def main():
 
 
     app.add_handler(
+
         MessageHandler(
-            filters.ALL,
+
+            filters.TEXT
+            | filters.PHOTO
+            | filters.VIDEO,
+
             process_message
+
         )
+
     )
+
 
 
     app.run_polling()
@@ -180,4 +234,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
