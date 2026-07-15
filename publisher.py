@@ -55,26 +55,14 @@ def send_photo(photo, caption):
     }
 
 
-    files = None
-
-
-    # صورة Telegram file_id
-    if not photo.startswith("http") and len(photo) > 20:
+    if photo.startswith("http"):
 
         data["photo"] = photo
-
-
-
-    # رابط صورة
-    elif photo.startswith("http"):
-
-        data["photo"] = photo
-
 
 
     else:
 
-        return None
+        data["photo"] = photo
 
 
 
@@ -89,8 +77,6 @@ def send_photo(photo, caption):
 
 
 
-
-
 def send_video(video, caption):
 
     url = f"{API_URL}/sendVideo"
@@ -99,23 +85,9 @@ def send_video(video, caption):
     data = {
         "chat_id": CHANNEL_ID,
         "caption": caption,
-        "parse_mode": "HTML"
+        "parse_mode": "HTML",
+        "video": video
     }
-
-
-
-    # فيديو Telegram file_id
-    if not video.startswith("http"):
-
-        data["video"] = video
-
-
-
-    # رابط فيديو مباشر
-    else:
-
-        data["video"] = video
-
 
 
     response = requests.post(
@@ -129,8 +101,6 @@ def send_video(video, caption):
 
 
 
-
-
 async def publish_post(
     text,
     image=None,
@@ -139,9 +109,14 @@ async def publish_post(
 
     print("📤 Publishing...")
 
+    print("CHANNEL_ID:", CHANNEL_ID)
+    print("TOKEN:", bool(BOT_TOKEN))
+    print("IMAGE:", image)
+    print("VIDEO:", video)
+
+
 
     try:
-
 
         if video:
 
@@ -167,14 +142,14 @@ async def publish_post(
 
 
 
+        print("TELEGRAM RESPONSE:")
         print(result)
 
 
 
-        if result and result.get("ok"):
+        if result.get("ok"):
 
             return True
-
 
 
         return False
@@ -183,11 +158,9 @@ async def publish_post(
 
     except Exception as e:
 
-
         print(
             "❌ Publisher Error:",
             e
         )
-
 
         return False

@@ -27,8 +27,9 @@ logging.basicConfig(
 )
 
 
-
 async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    print("🔥 PROCESS MESSAGE STARTED")
 
     message = update.message
 
@@ -50,17 +51,13 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     content = text
 
 
-
-    # فيديو تيليجرام
+    # فيديو Telegram
     if message.video:
-
         video = message.video.file_id
 
 
-
-    # صورة تيليجرام
+    # صورة Telegram
     elif message.photo:
-
         image = message.photo[-1].file_id
 
 
@@ -74,7 +71,6 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         article = await extract_article(text)
 
-
         title = article.get(
             "title",
             ""
@@ -87,20 +83,15 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
         if article.get("video"):
-
-            video = article.get(
-                "video"
-            )
+            video = article.get("video")
 
 
         elif article.get("image"):
-
-            image = article.get(
-                "image"
-            )
+            image = article.get("image")
 
 
 
+    # البحث عن صورة
     if not image and not video:
 
         image = await find_image(
@@ -108,6 +99,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+    print("✍️ AI START")
 
     ai_text = rewrite_news(
         content,
@@ -120,18 +112,22 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-    await publish_post(
+    print("🚀 CALLING PUBLISH POST")
+
+
+    result = await publish_post(
         text=final_post,
         image=image,
         video=video
     )
 
 
+    print("📌 PUBLISH RESULT:", result)
+
+
     await message.reply_text(
         "✅ تم الانتهاء"
     )
-
-
 
 
 
