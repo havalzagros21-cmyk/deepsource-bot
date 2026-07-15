@@ -9,10 +9,7 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-CHANNEL_ID = (
-    os.getenv("CHANNEL_ID")
-    or os.getenv("CHANNEL_LINK")
-)
+CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 
 API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
@@ -39,7 +36,13 @@ def send_text(text):
     )
 
 
+    print("TEXT RESPONSE:")
+    print(response.json())
+
+
     return response.json()
+
+
 
 
 
@@ -53,6 +56,7 @@ def send_photo(photo, caption):
         "caption": caption,
         "parse_mode": "HTML"
     }
+
 
 
     if photo.startswith("http"):
@@ -73,7 +77,13 @@ def send_photo(photo, caption):
     )
 
 
+    print("PHOTO RESPONSE:")
+    print(response.json())
+
+
     return response.json()
+
+
 
 
 
@@ -84,10 +94,11 @@ def send_video(video, caption):
 
     data = {
         "chat_id": CHANNEL_ID,
+        "video": video,
         "caption": caption,
-        "parse_mode": "HTML",
-        "video": video
+        "parse_mode": "HTML"
     }
+
 
 
     response = requests.post(
@@ -97,7 +108,13 @@ def send_video(video, caption):
     )
 
 
+    print("VIDEO RESPONSE:")
+    print(response.json())
+
+
     return response.json()
+
+
 
 
 
@@ -107,8 +124,8 @@ async def publish_post(
     video=None
 ):
 
-    print("📤 Publishing...")
 
+    print("📤 Publishing...")
     print("CHANNEL_ID:", CHANNEL_ID)
     print("TOKEN:", bool(BOT_TOKEN))
     print("IMAGE:", image)
@@ -118,7 +135,9 @@ async def publish_post(
 
     try:
 
+
         if video:
+
 
             result = send_video(
                 video,
@@ -128,6 +147,7 @@ async def publish_post(
 
         elif image:
 
+
             result = send_photo(
                 image,
                 text
@@ -136,31 +156,40 @@ async def publish_post(
 
         else:
 
+
             result = send_text(
                 text
             )
 
 
 
-        print("TELEGRAM RESPONSE:")
-        print(result)
-
-
 
         if result.get("ok"):
+
+
+            print("✅ PUBLISH SUCCESS")
 
             return True
 
 
-        return False
+
+        else:
+
+
+            print("❌ PUBLISH FAILED")
+
+            return False
+
 
 
 
     except Exception as e:
 
+
         print(
             "❌ Publisher Error:",
             e
         )
+
 
         return False
