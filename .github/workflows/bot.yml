@@ -1,8 +1,6 @@
 name: DeepSource Telegram Bot
 
 on:
-  schedule:
-    - cron: "0 6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -12,17 +10,21 @@ jobs:
     timeout-minutes: 480
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
+
       - name: Install requirements
         run: |
           pip install -r requirements.txt
+
 
       - name: Run bot
         env:
