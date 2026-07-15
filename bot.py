@@ -27,9 +27,10 @@ logging.basicConfig(
 )
 
 
-async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    print("🔥 PROCESS MESSAGE STARTED")
+async def process_message(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
 
     message = update.message
 
@@ -44,6 +45,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = message.caption or message.text or ""
 
+
     image = None
     video = None
 
@@ -51,12 +53,12 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     content = text
 
 
-    # فيديو Telegram
+    # فيديو تيليجرام
     if message.video:
         video = message.video.file_id
 
 
-    # صورة Telegram
+    # صورة تيليجرام
     elif message.photo:
         image = message.photo[-1].file_id
 
@@ -70,6 +72,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         article = await extract_article(text)
+
 
         title = article.get(
             "title",
@@ -99,8 +102,15 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-    print("✍️ AI START")
+    print("========== DEBUG ==========")
+    print("TITLE:", title)
+    print("IMAGE:", image)
+    print("VIDEO:", video)
+    print("===========================")
 
+
+
+    # كتابة الخبر بالذكاء الاصطناعي
     ai_text = rewrite_news(
         content,
         title
@@ -112,7 +122,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-    print("🚀 CALLING PUBLISH POST")
+    print("🚀 Sending to publisher...")
 
 
     result = await publish_post(
@@ -122,12 +132,23 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-    print("📌 PUBLISH RESULT:", result)
+    print("PUBLISH RESULT:", result)
 
 
-    await message.reply_text(
-        "✅ تم الانتهاء"
-    )
+
+    if result:
+
+        await message.reply_text(
+            "✅ تم النشر بنجاح"
+        )
+
+    else:
+
+        await message.reply_text(
+            "❌ فشل النشر"
+        )
+
+
 
 
 
@@ -143,6 +164,7 @@ def main():
         .build()
 
 
+
     app.add_handler(
         MessageHandler(
             filters.ALL,
@@ -152,6 +174,8 @@ def main():
 
 
     app.run_polling()
+
+
 
 
 
